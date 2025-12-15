@@ -1,0 +1,75 @@
+name: FastAPI CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOCKER_IMAGE_NAME: fastapi-demo # Base name of your image
+  DOCKER_FULL_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ env.DOCKER_IMAGE_NAME }}
+  
+jobs:
+  ################################################################
+  # A. Continuous Integration (CI) Job (Remains the same)
+  ################################################################
+  ci:
+    # ... (CI steps like Checkout, Setup Python, Install Dependencies, Run Pytest)
+    # This job confirms code quality and functionality.
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    - name: Install dependencies and pytest
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest 
+    - name: Run Pytest Tests
+      run: pytest
+
+  ################################################################
+  # B. Continuous Deployment (CD) Job (Mocked)
+  ################################################################
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ env.DOCKER_FULL_IMAGE }}:${{ github.sha }}
+        # Pushes to Docker Hub, tagged with the unique commit hash (SHA)
+        
+    - name: 🧪 Verify Deployment Command (MOCK STEP)
+      run: |
+        echo "--- MOCK DEPLOYMENT VERIFICATION ---"
+        echo "Successfully built and pushed image:"
+        echo "  ${{ env.DOCKER_FULL_IMAGE }}:${{ github.sha }}"
+        echo ""
+        echo "The following command would be run on your live server:"
+        echo "docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -p 80:8000 ${{ env.DOCKER_FULL_IMAGE }}:${{ github.sha }}"
+        echo "--- MOCK COMPLETE ---"
