@@ -33,7 +33,7 @@ jobs:
         pip install -r requirements.txt
         pip install pytest 
     - name: Run Pytest Tests
-      run: pytest
+      run: python -m pytest
 
   ################################################################
   # B. Continuous Deployment (CD) Job (Mocked)
