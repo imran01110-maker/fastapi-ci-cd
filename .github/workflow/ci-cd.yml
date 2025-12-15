@@ -72,4 +72,4 @@ jobs:
         echo ""
         echo "The following command would be run on your live server:"
         echo "docker run -d --name ${{ env.DOCKER_IMAGE_NAME }} -p 80:8000 ${{ env.DOCKER_FULL_IMAGE }}:${{ github.sha }}"
-        echo "--- MOCK COMPLETE ---"
+        echo "--- MOCK COMPLETE ---!"
